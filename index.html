@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MoneyTrack - Manajer Keuangan Bulanan</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="app-container">
+      <header class="app-header">
+        <div class="header-content">
+          <div class="logo-container">
+            <i class="fas fa-wallet logo-icon"></i>
+            <h1>MoneyTrack</h1>
+          </div>
+          <div class="header-actions">
+            <button id="reset-btn" class="btn-reset" title="Reset Aplikasi">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+            <button id="info-btn" class="btn-info" title="Info Aplikasi">
+              <i class="fas fa-info-circle"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="app-main">
+        <section class="month-section">
+          <div class="month-navigation">
+            <button id="prev-month-btn" class="month-btn">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <h2 id="current-month-display"></h2>
+            <button id="next-month-btn" class="month-btn">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </section>
+
+        <section class="summary-section">
+          <div class="summary-container">
+            <div class="summary-card">
+              <div class="card-icon">
+                <i class="fas fa-piggy-bank"></i>
+              </div>
+              <div class="card-content">
+                <h4>Saldo Awal</h4>
+                <p id="starting-balance" class="money">Rp 0</p>
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="card-icon income">
+                <i class="fas fa-arrow-up"></i>
+              </div>
+              <div class="card-content">
+                <h4>Pemasukan</h4>
+                <p id="money-plus" class="money plus">+Rp 0</p>
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="card-icon expense">
+                <i class="fas fa-arrow-down"></i>
+              </div>
+              <div class="card-content">
+                <h4>Pengeluaran</h4>
+                <p id="money-minus" class="money minus">-Rp 0</p>
+              </div>
+            </div>
+            <div class="summary-card balance">
+              <div class="card-icon balance">
+                <i class="fas fa-coins"></i>
+              </div>
+              <div class="card-content">
+                <h4>Sisa Saldo</h4>
+                <p id="balance">Rp 0</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="form-tabs">
+            <button class="form-tab active" id="income-tab">Pemasukan</button>
+            <button class="form-tab" id="expense-tab">Pengeluaran</button>
+          </div>
+
+          <div class="form-content">
+            <!-- Income Form -->
+            <form id="income-form" class="transaction-form active">
+              <div class="form-group">
+                <label for="income-text"
+                  ><i class="fas fa-align-left"></i> Deskripsi</label
+                >
+                <input
+                  type="text"
+                  id="income-text"
+                  placeholder="Misal: Gaji bulanan"
+                  required
+                />
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="income-amount"
+                    ><i class="fas fa-money-bill-wave"></i> Jumlah (Rp)</label
+                  >
+                  <input
+                    type="text"
+                    id="income-amount"
+                    placeholder="Contoh: 5.000.000"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="income-category"
+                    ><i class="fas fa-tag"></i> Kategori</label
+                  >
+                  <select id="income-category">
+                    <option value="Gaji">Gaji</option>
+                    <option value="Bonus">Bonus</option>
+                    <option value="Investasi">Investasi</option>
+                    <option value="Hadiah">Hadiah</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="income-date"
+                  ><i class="fas fa-calendar-alt"></i> Tanggal</label
+                >
+                <input type="date" id="income-date" required />
+              </div>
+              <button type="submit" class="btn-submit income-btn">
+                <i class="fas fa-plus"></i> Tambah Pemasukan
+              </button>
+            </form>
+
+            <!-- Expense Form -->
+            <form id="expense-form" class="transaction-form">
+              <div class="form-group">
+                <label for="expense-text"
+                  ><i class="fas fa-align-left"></i> Deskripsi</label
+                >
+                <input
+                  type="text"
+                  id="expense-text"
+                  placeholder="Misal: Beli buku"
+                  required
+                />
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="expense-amount"
+                    ><i class="fas fa-money-bill-wave"></i> Jumlah (Rp)</label
+                  >
+                  <input
+                    type="text"
+                    id="expense-amount"
+                    placeholder="Contoh: 250.000"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="expense-category"
+                    ><i class="fas fa-tag"></i> Kategori</label
+                  >
+                  <select id="expense-category">
+                    <option value="Makanan & Minuman">Makanan & Minuman</option>
+                    <option value="Transportasi">Transportasi</option>
+                    <option value="Belanja">Belanja</option>
+                    <option value="Hiburan">Hiburan</option>
+                    <option value="Kesehatan">Kesehatan</option>
+                    <option value="Pendidikan">Pendidikan</option>
+                    <option value="Tagihan">Tagihan</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="expense-date"
+                  ><i class="fas fa-calendar-alt"></i> Tanggal</label
+                >
+                <input type="date" id="expense-date" required />
+              </div>
+              <button type="submit" class="btn-submit expense-btn">
+                <i class="fas fa-plus"></i> Tambah Pengeluaran
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <section class="chart-section">
+          <div class="section-header">
+            <h3><i class="fas fa-chart-pie"></i> Visualisasi Data</h3>
+            <button id="toggle-charts" class="btn-toggle">
+              <i class="fas fa-eye"></i> Tampilkan
+            </button>
+          </div>
+          <div id="charts-container" class="charts-wrapper">
+            <div class="chart-container">
+              <h4>
+                <i class="fas fa-money-bill-wave"></i> Analisis Pengeluaran
+              </h4>
+              <canvas id="expense-pie-chart"></canvas>
+            </div>
+            <div class="chart-container">
+              <h4>
+                <i class="fas fa-balance-scale"></i> Pemasukan vs Pengeluaran
+              </h4>
+              <canvas id="monthly-bar-chart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <section class="transaction-section">
+          <div class="section-header">
+            <h3><i class="fas fa-history"></i> Riwayat Transaksi</h3>
+            <div class="transaction-filter">
+              <select id="filter-type">
+                <option value="all">Semua</option>
+                <option value="income">Pemasukan</option>
+                <option value="expense">Pengeluaran</option>
+              </select>
+              <select id="filter-category">
+                <option value="all">Semua Kategori</option>
+              </select>
+            </div>
+          </div>
+          <ul id="list" class="transaction-list"></ul>
+        </section>
+      </main>
+    </div>
+
+    <!-- Modal Edit -->
+    <div id="edit-modal" class="modal-container">
+      <div class="modal-content">
+        <button class="close-btn" id="close-edit-modal-btn">&times;</button>
+        <h3><i class="fas fa-edit"></i> Edit Transaksi</h3>
+        <form id="edit-form">
+          <input type="hidden" id="edit-id" />
+          <input type="hidden" id="edit-type" />
+          <div class="form-group">
+            <label for="edit-text">Deskripsi</label>
+            <input type="text" id="edit-text" required />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-amount">Jumlah (Rp)</label>
+              <input type="text" id="edit-amount" required />
+            </div>
+            <div class="form-group">
+              <label for="edit-category">Kategori</label>
+              <select id="edit-category"></select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="edit-date">Tanggal</label>
+            <input type="date" id="edit-date" required />
+          </div>
+          <button type="submit" class="btn-submit">
+            <i class="fas fa-save"></i> Simpan Perubahan
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Saldo Awal -->
+    <div id="balance-modal" class="modal-container">
+      <div class="modal-content">
+        <h3 id="balance-modal-title">
+          <i class="fas fa-piggy-bank"></i> Masukkan Saldo Awal
+        </h3>
+        <form id="balance-form">
+          <div class="form-group">
+            <label for="initial-balance-input">Saldo Awal Bulan Ini (Rp)</label>
+            <input
+              type="text"
+              id="initial-balance-input"
+              placeholder="Contoh: 5.000.000"
+              required
+            />
+          </div>
+          <button type="submit" class="btn-submit">
+            <i class="fas fa-save"></i> Simpan Saldo
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Info -->
+    <div id="info-modal" class="modal-container">
+      <div class="modal-content">
+        <button class="close-btn" id="close-info-modal-btn">&times;</button>
+        <h3><i class="fas fa-info-circle"></i> Tentang MoneyTrack</h3>
+        <div class="modal-body">
+          <p>
+            Aplikasi Manajer Keuangan Bulanan untuk membantu Anda melacak
+            pemasukan dan pengeluaran dengan lebih mudah.
+          </p>
+          <p><strong>Fitur:</strong></p>
+          <ul>
+            <li>Input terpisah untuk pemasukan dan pengeluaran</li>
+            <li>Kelola transaksi per bulan</li>
+            <li>Visualisasi data dengan grafik interaktif</li>
+            <li>Kategori yang terorganisir</li>
+            <li>Tampilan modern dan nyaman di mata</li>
+          </ul>
+          <p class="version">Versi 2.1</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Konfirmasi Reset -->
+    <div id="confirm-reset-modal" class="modal-container">
+      <div class="modal-content">
+        <h3><i class="fas fa-exclamation-triangle"></i> Konfirmasi Reset</h3>
+        <div class="modal-body">
+          <p>
+            Apakah Anda yakin ingin mereset semua data? Tindakan ini tidak dapat
+            dibatalkan.
+          </p>
+          <div class="modal-actions">
+            <button id="cancel-reset" class="btn-cancel">Batal</button>
+            <button id="confirm-reset" class="btn-danger">Ya, Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
