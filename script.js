@@ -52,6 +52,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const toggleChartsBtn = document.getElementById("toggle-charts");
   const chartsContainer = document.getElementById("charts-container");
+  const pieChartValues = document.getElementById("pie-chart-values");
+  const barChartValues = document.getElementById("bar-chart-values");
 
   const pieChartCanvas = document
     .getElementById("expense-pie-chart")
@@ -116,12 +118,38 @@ document.addEventListener("DOMContentLoaded", () => {
     return parseInt(cleanInput) || 0;
   }
 
-  function formatRupiahInput(input) {
-    const number = parseRupiahInput(input);
-    if (isNaN(number)) return "";
+  function formatRupiahInput(input, element) {
+    // Simpan posisi cursor
+    const cursorPos = element.selectionStart;
+    const originalLength = element.value.length;
 
-    const formatted = number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    return formatted;
+    // Hapus semua karakter non-digit
+    const cleanValue = input.replace(/[^0-9]/g, "");
+
+    if (cleanValue === "") {
+      return "";
+    }
+
+    // Format dengan titik pemisah ribuan
+    const formattedValue = cleanValue.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+    // Hitung perbedaan panjang untuk menyesuaikan posisi cursor
+    const diff = formattedValue.length - originalLength;
+
+    // Kembalikan nilai yang diformat
+    return {
+      value: formattedValue,
+      cursorPos: cursorPos + diff,
+    };
+  }
+
+  function formatShortRupiah(number) {
+    if (number >= 1000000) {
+      return (number / 1000000).toFixed(1) + "Jt";
+    } else if (number >= 1000) {
+      return (number / 1000).toFixed(1) + "Rb";
+    }
+    return number.toString();
   }
 
   function getMonthString(date) {
@@ -340,9 +368,9 @@ document.addEventListener("DOMContentLoaded", () => {
       editId.value = transaction.id;
       editType.value = transaction.amount > 0 ? "income" : "expense";
       editText.value = transaction.text;
-      editAmount.value = formatRupiahInput(
-        Math.abs(transaction.amount).toString()
-      );
+      editAmount.value = Math.abs(transaction.amount)
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
       editDate.value = transaction.date.split("T")[0];
 
       // Update kategori berdasarkan tipe transaksi
@@ -534,11 +562,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (expensePieChart) expensePieChart.destroy();
 
+    // Update nilai numerik di samping grafik
+    pieChartValues.innerHTML = "";
+    categories.forEach((category, index) => {
+      const valueDiv = document.createElement("div");
+      const colorIndicator = document.createElement("div");
+      colorIndicator.className = "color-indicator";
+      colorIndicator.style.backgroundColor = backgroundColors[index];
+
+      valueDiv.appendChild(colorIndicator);
+      valueDiv.innerHTML += `${category}: ${formatRupiah(
+        expenseByCategory[category]
+      )}`;
+      pieChartValues.appendChild(valueDiv);
+    });
+
     if (categories.length > 0) {
       expensePieChart = new Chart(pieChartCanvas, {
         type: "pie",
         data: {
-          labels: categories,
+          labels: categories.map(
+            (cat) => `${cat} (${formatShortRupiah(expenseByCategory[cat])})`
+          ),
           datasets: [
             {
               data: amounts,
@@ -551,6 +596,12 @@ document.addEventListener("DOMContentLoaded", () => {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
+            legend: {
+              position: "right",
+              labels: {
+                color: "#ecf0f1",
+              },
+            },
             tooltip: {
               callbacks: {
                 label: function (context) {
@@ -558,7 +609,9 @@ document.addEventListener("DOMContentLoaded", () => {
                   const value = context.raw || 0;
                   const total = context.dataset.data.reduce((a, b) => a + b, 0);
                   const percentage = Math.round((value / total) * 100);
-                  return `${label}: ${formatRupiah(value)} (${percentage}%)`;
+                  return `${label.split(" (")[0]}: ${formatRupiah(
+                    value
+                  )} (${percentage}%)`;
                 },
               },
             },
@@ -570,6 +623,7 @@ document.addEventListener("DOMContentLoaded", () => {
       pieChartCanvas.textContent = "Tidak ada data pengeluaran";
       pieChartCanvas.style.textAlign = "center";
       pieChartCanvas.style.padding = "20px";
+      pieChartCanvas.style.color = "#ecf0f1";
     }
   }
 
@@ -583,6 +637,18 @@ document.addEventListener("DOMContentLoaded", () => {
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
     if (monthlyBarChart) monthlyBarChart.destroy();
+
+    // Update nilai numerik di samping grafik
+    barChartValues.innerHTML = `
+      <div>
+        <div class="color-indicator" style="background-color: #2ecc71"></div>
+        Pemasukan: ${formatRupiah(income)}
+      </div>
+      <div>
+        <div class="color-indicator" style="background-color: #e74c3c"></div>
+        Pengeluaran: ${formatRupiah(expense)}
+      </div>
+    `;
 
     monthlyBarChart = new Chart(barChartCanvas, {
       type: "bar",
@@ -610,13 +676,30 @@ document.addEventListener("DOMContentLoaded", () => {
           y: {
             beginAtZero: true,
             ticks: {
+              color: "#ecf0f1",
               callback: function (value) {
-                return formatRupiah(value);
+                return formatShortRupiah(value);
               },
+            },
+            grid: {
+              color: "rgba(255, 255, 255, 0.1)",
+            },
+          },
+          x: {
+            ticks: {
+              color: "#ecf0f1",
+            },
+            grid: {
+              color: "rgba(255, 255, 255, 0.1)",
             },
           },
         },
         plugins: {
+          legend: {
+            labels: {
+              color: "#ecf0f1",
+            },
+          },
           tooltip: {
             callbacks: {
               label: function (context) {
@@ -663,25 +746,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   toggleChartsBtn.addEventListener("click", toggleCharts);
 
-  // Format input jumlah uang secara otomatis
+  // Format input jumlah uang secara otomatis tanpa mengganggu cursor
   [incomeAmount, expenseAmount, editAmount, initialBalanceInput].forEach(
     (input) => {
       input.addEventListener("input", (e) => {
         const cursorPos = e.target.selectionStart;
-        const cleanValue = e.target.value.replace(/[^0-9]/g, "");
+        const formatted = formatRupiahInput(e.target.value, e.target);
 
-        if (cleanValue === "") {
-          e.target.value = "";
-          return;
+        if (formatted.value !== undefined) {
+          e.target.value = formatted.value;
+          // Set posisi cursor setelah format
+          e.target.setSelectionRange(formatted.cursorPos, formatted.cursorPos);
         }
-
-        // Format dengan titik pemisah ribuan
-        const formattedValue = cleanValue.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        e.target.value = formattedValue;
-
-        // Kembalikan posisi kursor setelah format
-        const diff = formattedValue.length - e.target.value.length;
-        e.target.setSelectionRange(cursorPos + diff, cursorPos + diff);
       });
     }
   );
